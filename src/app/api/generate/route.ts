@@ -1,9 +1,9 @@
-import { OpenAI } from "openai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from "next/server";
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// Initialize the Google Generative AI SDK with your API key
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
+const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
 export async function POST(req: Request) {
   try {
@@ -36,26 +36,16 @@ export async function POST(req: Request) {
       Output ONLY the LinkedIn post content. No introductory or concluding remarks.
     `;
 
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o", // Using a reliable model
-      messages: [
-        {
-          role: "system",
-          content: "You are a LinkedIn content transformation engine."
-        },
-        {
-          role: "user",
-          content: prompt
-        }
-      ],
-      temperature: 0.7,
+    const result = await model.generateContent({
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      systemInstruction: "You are a LinkedIn content transformation engine."
     });
-
-    const generatedText = response.choices[0].message.content;
+    
+    const generatedText = result.response.text();
 
     return NextResponse.json({ output: generatedText });
   } catch (error: any) {
-    console.error("OpenAI API Error:", error);
+    console.error("Gemini API Error:", error);
     return NextResponse.json(
       { error: "Failed to generate post. Please check your API key and try again." },
       { status: 500 }
