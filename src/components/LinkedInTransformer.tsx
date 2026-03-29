@@ -14,28 +14,36 @@ export const LinkedInTransformer: React.FC = () => {
   const [output, setOutput] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     if (!inputText) return;
     
     setIsGenerating(true);
-    // Dummy generation for now (Phase 2)
-    setTimeout(() => {
-      const dummyText = `🚀 Just had an incredible realization!
+    try {
+      const response = await fetch("/api/generate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          input: inputText,
+          tone,
+          cringe,
+        }),
+      });
 
-I was thinking about "${inputText.slice(0, 50)}..." and it hit me. In the world of ${tone.toLowerCase()} content, it's not about what you say, but how you inspire.
+      const data = await response.json();
 
-Key Takeaways:
-• Always be learning
-• Stay ${tone.toLowerCase()}
-• Embrace the ${cringe > 50 ? "hustle" : "process"}
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to generate post");
+      }
 
-What are your thoughts on this? Let's discuss below! 👇
-
-#Networking #GrowthMindset #Professional #Innovation`;
-      
-      setOutput(dummyText);
+      setOutput(data.output);
+    } catch (error: any) {
+      console.error("Generation error:", error);
+      setOutput(`Error: ${error.message}. Make sure you have an OPENAI_API_KEY in your .env`);
+    } finally {
       setIsGenerating(false);
-    }, 1500);
+    }
   };
 
   return (
@@ -73,7 +81,7 @@ What are your thoughts on this? Let's discuss below! 👇
               }`}
             >
               {isGenerating ? (
-                <>Transmuting...</>
+                <>Transmiting...</>
               ) : (
                 <>
                   Generate Post
