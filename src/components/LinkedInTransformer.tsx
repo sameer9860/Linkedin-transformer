@@ -40,7 +40,7 @@ export const LinkedInTransformer: React.FC = () => {
       setOutput(data.output);
     } catch (error: any) {
       console.error("Generation error:", error);
-      setOutput(`Error: ${error.message}. Make sure you have an OPENAI_API_KEY in your .env`);
+      setOutput(`Error: ${error.message}. Make sure you have a GEMINI_API_KEY in your .env`);
     } finally {
       setIsGenerating(false);
     }
