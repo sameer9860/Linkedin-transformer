@@ -17,7 +17,7 @@ export default function Home() {
               In
             </div>
             <span className="font-bold text-xl text-slate-900 dark:text-white tracking-tight">
-              Transformer
+              Social Media Transformer
             </span>
           </div>
           <div className="flex items-center gap-4">
@@ -42,7 +42,7 @@ export default function Home() {
             Built with Next.js, Tailwind CSS & AI for modern professionals.
           </p>
           <p className="text-xs text-slate-400 dark:text-slate-600">
-            © 2026 LinkedIn Transformer. No data is stored.
+            © 2026 Social Media Transformer. No data is stored.
           </p>
         </div>
       </footer>
