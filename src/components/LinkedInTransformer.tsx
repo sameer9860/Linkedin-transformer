@@ -3,11 +3,13 @@
 import React, { useState } from "react";
 import { InputBox } from "./InputBox";
 import { ToneSelector, Tone } from "./ToneSelector";
+import { PlatformSelector, Platform } from "./PlatformSelector";
 import { CringeSlider } from "./CringeSlider";
 import { OutputPreview } from "./OutputPreview";
 import { Sparkles, ArrowRight, Wand2, RefreshCw, Heart, Scissors } from "lucide-react";
 
 export const LinkedInTransformer: React.FC = () => {
+  const [platform, setPlatform] = useState<Platform>("LinkedIn");
   const [inputText, setInputText] = useState("");
   const [tone, setTone] = useState<Tone>("Professional");
   const [cringe, setCringe] = useState(50);
@@ -25,6 +27,7 @@ export const LinkedInTransformer: React.FC = () => {
       },
       body: JSON.stringify({
         input: inputText,
+        platform,
         tone,
         cringe,
         action,
@@ -112,7 +115,7 @@ export const LinkedInTransformer: React.FC = () => {
             LinkedIn <span className="text-blue-600">Transformer</span>
           </h1>
           <p className="text-slate-500 dark:text-slate-400 text-lg max-w-2xl mx-auto leading-relaxed">
-            Turn your raw thoughts into high-engagement professional posts in seconds. 
+            Turn your rough thoughts into posts for LinkedIn, Twitter/X, or Instagram in seconds.
             Stop staring at a blank screen.
           </p>
         </div>
@@ -121,7 +124,8 @@ export const LinkedInTransformer: React.FC = () => {
           <div className="bg-white dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 md:p-8 shadow-xl shadow-slate-200/50 dark:shadow-none space-y-8">
             <InputBox value={inputText} onChange={setInputText} />
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
+              <PlatformSelector selectedPlatform={platform} onSelect={setPlatform} />
               <ToneSelector selectedTone={tone} onSelect={setTone} />
               <CringeSlider value={cringe} onChange={setCringe} />
             </div>
@@ -209,7 +213,7 @@ export const LinkedInTransformer: React.FC = () => {
           </div>
 
           <div className="space-y-4">
-            <OutputPreview content={output} isGenerating={isGenerating} />
+            <OutputPreview content={output} platform={platform} isGenerating={isGenerating} />
           </div>
         </div>
       </div>
