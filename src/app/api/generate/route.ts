@@ -6,6 +6,7 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
 type GenerateAction = "generate" | "shorter" | "emotional" | "regenerate" | "hooks";
+export type Platform = "LinkedIn" | "Twitter/X" | "Instagram";
 
 const getEmojiBudget = (cringe: number): string => {
   if (cringe <= 10) return "0";
@@ -15,11 +16,27 @@ const getEmojiBudget = (cringe: number): string => {
   return "6-10";
 };
 
-const buildBasePrompt = (input: string, tone: string, cringe: number): string => {
-  const emojiBudget = getEmojiBudget(cringe);
-  return `
-You are an expert LinkedIn post editor who turns raw notes into high-engagement posts without inventing facts.
-
+const getPlatformInstructions = (platform: Platform): string => {
+  switch (platform) {
+    case "Twitter/X":
+      return `
+Write the output as a Twitter/X post.
+- Keep it concise and direct, ideally one strong hook with a short follow-up.
+- Stay within 280 characters if possible.
+- Use 1-3 hashtags at the end, no markdown headers.
+- Keep the voice punchy and shareable.
+      `.trim();
+    case "Instagram":
+      return `
+Write the output as an Instagram caption.
+- Use a warm, visual storytelling tone with short paragraphs.
+- Include 3-5 hashtags at the bottom on separate lines.
+- Emojis are welcome, but keep them purposeful.
+- No markdown headers or overly formal phrasing.
+      `.trim();
+    case "LinkedIn":
+    default:
+      return `
 Transform the INPUT into a LinkedIn post with this exact structure:
 
 1) Hook (1-2 lines, scroll-stopping, specific)
@@ -27,6 +44,23 @@ Transform the INPUT into a LinkedIn post with this exact structure:
 3) Lessons (optional; 3-5 bullets only if it improves clarity)
 4) Ending (one strong takeaway + a question to invite comments)
 5) Hashtags (3-5 on their own lines, at the very bottom)
+      `.trim();
+  }
+};
+
+const buildBasePrompt = (
+  input: string,
+  tone: string,
+  cringe: number,
+  platform: Platform
+): string => {
+  const emojiBudget = getEmojiBudget(cringe);
+  const platformInstructions = getPlatformInstructions(platform);
+
+  return `
+You are an expert social media copywriter who turns raw notes into high-engagement posts without inventing facts.
+
+${platformInstructions}
 
 Tone: ${tone}
 Cringe slider: ${cringe}/100
@@ -49,15 +83,17 @@ const buildPrompt = ({
   input,
   tone,
   cringe,
+  platform,
   currentOutput,
 }: {
   action: GenerateAction;
   input: string;
   tone: string;
   cringe: number;
+  platform: Platform;
   currentOutput?: string;
 }): string => {
-  const basePrompt = buildBasePrompt(input, tone, cringe);
+  const basePrompt = buildBasePrompt(input, tone, cringe, platform);
 
   if (action === "shorter") {
     return `
@@ -98,7 +134,7 @@ ${currentOutput || "(none)"}
 
   if (action === "hooks") {
     return `
-You write high-performing LinkedIn hooks.
+You write high-performing hooks for ${platform}.
 
 Input context:
 ${input}
@@ -123,7 +159,7 @@ Rules:
 
 export async function POST(req: Request) {
   try {
-    const { input, tone, cringe, action, currentOutput } = await req.json();
+    const { input, platform, tone, cringe, action, currentOutput } = await req.json();
 
     if (!input) {
       return NextResponse.json(
@@ -132,6 +168,10 @@ export async function POST(req: Request) {
       );
     }
 
+    const safePlatform: Platform =
+      platform === "Twitter/X" || platform === "Instagram"
+        ? platform
+        : "LinkedIn";
     const safeTone = typeof tone === "string" && tone.trim() ? tone.trim() : "Professional";
     const safeCringe =
       typeof cringe === "number" && Number.isFinite(cringe) ? Math.max(0, Math.min(100, cringe)) : 50;
@@ -146,6 +186,7 @@ export async function POST(req: Request) {
     const prompt = buildPrompt({
       action: safeAction,
       input,
+      platform: safePlatform,
       tone: safeTone,
       cringe: safeCringe,
       currentOutput: typeof currentOutput === "string" ? currentOutput : "",
@@ -153,7 +194,7 @@ export async function POST(req: Request) {
 
     const result = await model.generateContent({
       contents: [{ role: "user", parts: [{ text: prompt }] }],
-      systemInstruction: "You are a LinkedIn content transformation engine."
+      systemInstruction: "You are a social media content transformation engine."
     });
     
     const generatedText = result.response.text();
@@ -171,8 +212,9 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({ output: generatedText, action: safeAction });
-  } catch (error: any) {
-    console.error("Gemini API Error:", error);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error("Gemini API Error:", message);
     return NextResponse.json(
       { error: "Failed to generate post. Please check your API key and try again." },
       { status: 500 }
