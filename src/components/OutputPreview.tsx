@@ -5,11 +5,13 @@ import { Copy, Check, Eye, ThumbsUp, MessageCircle, Repeat2, Send } from "lucide
 
 interface OutputPreviewProps {
   content: string;
+  platform: "LinkedIn" | "Twitter/X" | "Instagram";
   isGenerating: boolean;
 }
 
 export const OutputPreview: React.FC<OutputPreviewProps> = ({
   content,
+  platform,
   isGenerating,
 }) => {
   const [copied, setCopied] = useState(false);
@@ -31,31 +33,36 @@ export const OutputPreview: React.FC<OutputPreviewProps> = ({
 
   return (
     <div className="flex flex-col gap-3 w-full animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <div className="flex items-center justify-between mb-1">
+      <div className="flex flex-col gap-1 mb-1">
         <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300 font-medium text-sm">
           <Eye size={18} className="text-blue-600" />
           <span>Final Post Preview</span>
         </div>
-        {content && (
-          <button
-            onClick={handleCopy}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 ${
-              copied
-                ? "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400"
-                : "bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
-            }`}
-          >
-            {copied ? (
-              <>
-                <Check size={14} /> Copied!
-              </>
-            ) : (
-              <>
-                <Copy size={14} /> Copy Post
-              </>
-            )}
-          </button>
-        )}
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-[11px] text-slate-500 dark:text-slate-400">
+            Platform: {platform}
+          </span>
+          {content ? (
+            <button
+              onClick={handleCopy}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 ${
+                copied
+                  ? "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400"
+                  : "bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+              }`}
+            >
+              {copied ? (
+                <>
+                  <Check size={14} /> Copied!
+                </>
+              ) : (
+                <>
+                  <Copy size={14} /> Copy Post
+                </>
+              )}
+            </button>
+          ) : null}
+        </div>
       </div>
 
       <div className="relative min-h-[180px] rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 p-0 overflow-hidden shadow-sm">
@@ -108,7 +115,7 @@ export const OutputPreview: React.FC<OutputPreviewProps> = ({
             <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-900 text-xs text-slate-500 dark:text-slate-400">
               <div className="flex items-center justify-between">
                 <span>Preview engagement</span>
-                <span>Built for LinkedIn style readability</span>
+                <span>Built for modern social media style</span>
               </div>
             </div>
 
@@ -133,7 +140,7 @@ export const OutputPreview: React.FC<OutputPreviewProps> = ({
               In
             </div>
             <p className="text-sm">
-              Your LinkedIn-style live preview will appear here once generated.
+              Your social media post preview will appear here once generated.
             </p>
           </div>
         )}
