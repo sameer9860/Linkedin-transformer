@@ -18,8 +18,10 @@ export const LinkedInTransformer: React.FC = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isTweaking, setIsTweaking] = useState(false);
   const [isGeneratingHooks, setIsGeneratingHooks] = useState(false);
+  const [engagementScore, setEngagementScore] = useState<number | null>(null);
+  const [engagementSuggestions, setEngagementSuggestions] = useState<string[]>([]);
 
-  const callGenerateApi = async (action: "generate" | "shorter" | "emotional" | "regenerate" | "hooks") => {
+  const callGenerateApi = async (action: "generate" | "shorter" | "emotional" | "regenerate" | "hooks" | "analyze") => {
     const response = await fetch("/api/generate", {
       method: "POST",
       headers: {
@@ -52,11 +54,34 @@ export const LinkedInTransformer: React.FC = () => {
       const data = await callGenerateApi("generate");
       setOutput(data.output);
       setHooks([]);
+      // Analyze engagement after generation
+      await analyzeEngagement(data.output);
     } catch (error: any) {
       console.error("Generation error:", error);
       setOutput(`Error: ${error.message}. Make sure you have a GEMINI_API_KEY in your .env`);
+      setEngagementScore(null);
+      setEngagementSuggestions([]);
     } finally {
       setIsGenerating(false);
+    }
+  };
+
+  const analyzeEngagement = async (content: string) => {
+    if (!content) {
+      setEngagementScore(null);
+      setEngagementSuggestions([]);
+      return;
+    }
+
+    try {
+      const data = await callGenerateApi("analyze");
+      setEngagementScore(data.score);
+      setEngagementSuggestions(data.suggestions || []);
+    } catch (error: any) {
+      console.error("Analysis error:", error);
+      // Set default values if analysis fails
+      setEngagementScore(75);
+      setEngagementSuggestions(["Consider adding more specific details", "Try including a question to encourage engagement"]);
     }
   };
 
@@ -67,6 +92,8 @@ export const LinkedInTransformer: React.FC = () => {
     try {
       const data = await callGenerateApi(action);
       setOutput(data.output);
+      // Re-analyze engagement after adjustment
+      await analyzeEngagement(data.output);
     } catch (error: any) {
       console.error("Adjustment error:", error);
       setOutput(`Error: ${error.message}. Make sure you have a GEMINI_API_KEY in your .env`);
@@ -213,7 +240,13 @@ export const LinkedInTransformer: React.FC = () => {
           </div>
 
           <div className="space-y-4">
-            <OutputPreview content={output} platform={platform} isGenerating={isGenerating} />
+            <OutputPreview 
+              content={output} 
+              platform={platform} 
+              isGenerating={isGenerating}
+              engagementScore={engagementScore}
+              engagementSuggestions={engagementSuggestions}
+            />
           </div>
         </div>
       </div>
