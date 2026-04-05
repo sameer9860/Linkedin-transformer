@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { Copy, Check, Eye, ThumbsUp, MessageCircle, Repeat2, Send } from "lucide-react";
+import { Copy, Check, Eye, ThumbsUp, MessageCircle, Repeat2, Send, Share2 } from "lucide-react";
+import { toast } from "sonner";
 
 interface OutputPreviewProps {
   content: string;
@@ -28,6 +29,10 @@ export const OutputPreview: React.FC<OutputPreviewProps> = ({
     if (!content) return;
     navigator.clipboard.writeText(content);
     setCopied(true);
+    toast.success("Copied to clipboard", {
+      description: "Post is ready to be pasted on social media.",
+      duration: 2000,
+    });
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -71,11 +76,29 @@ export const OutputPreview: React.FC<OutputPreviewProps> = ({
 
       <div className="relative min-h-[180px] rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 p-0 overflow-hidden shadow-sm">
         {isGenerating ? (
-          <div className="flex flex-col items-center justify-center h-full gap-4 py-12">
-            <div className="w-10 h-10 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
-            <p className="text-sm font-medium text-slate-500 animate-pulse">
-              AI is refining your post...
-            </p>
+          <div className="flex flex-col w-full">
+            <div className="px-5 pt-5 pb-4 border-b border-slate-100 dark:border-slate-900">
+              <div className="flex items-start gap-3">
+                <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-900 animate-pulse" />
+                <div className="flex-1 space-y-2 py-1">
+                  <div className="h-4 bg-slate-100 dark:bg-slate-900 rounded w-1/3 animate-pulse" />
+                  <div className="h-3 bg-slate-50 dark:bg-slate-900/50 rounded w-1/4 animate-pulse" />
+                </div>
+              </div>
+            </div>
+            <div className="p-5 space-y-3">
+              <div className="h-4 bg-slate-100 dark:bg-slate-900 rounded w-full animate-pulse" />
+              <div className="h-4 bg-slate-100 dark:bg-slate-900 rounded w-5/6 animate-pulse" />
+              <div className="h-4 bg-slate-100 dark:bg-slate-900 rounded w-4/6 animate-pulse" />
+              <div className="h-4 bg-slate-100 dark:bg-slate-900 rounded w-full animate-pulse" />
+              <div className="pt-4 flex gap-2">
+                <div className="h-3 bg-blue-100 dark:bg-blue-900/30 rounded w-16 animate-pulse" />
+                <div className="h-3 bg-blue-100 dark:bg-blue-900/30 rounded w-16 animate-pulse" />
+              </div>
+            </div>
+            <div className="px-5 py-4 border-t border-slate-100 dark:border-slate-900">
+              <div className="h-10 bg-slate-50 dark:bg-slate-900/50 rounded-lg w-full animate-pulse" />
+            </div>
           </div>
         ) : content ? (
           <div className="flex flex-col">
