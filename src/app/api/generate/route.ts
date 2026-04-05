@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
-type GenerateAction = "generate" | "shorter" | "emotional" | "regenerate" | "hooks";
+type GenerateAction = "generate" | "shorter" | "emotional" | "regenerate" | "hooks" | "analyze";
 export type Platform = "LinkedIn" | "Twitter/X" | "Instagram";
 
 const getEmojiBudget = (cringe: number): string => {
@@ -154,6 +154,38 @@ Rules:
     `.trim();
   }
 
+  if (action === "analyze") {
+    return `
+Analyze this ${platform} post for engagement potential and provide specific improvement suggestions.
+
+Post content:
+${currentOutput || input}
+
+Return a JSON object with this exact structure:
+{
+  "score": <number 0-100>,
+  "suggestions": [<array of strings with specific suggestions>]
+}
+
+Scoring criteria:
+- Hook strength (0-25 points): Does it grab attention? Is it specific?
+- Story quality (0-25 points): Is there compelling narrative? Personal details?
+- Length optimization (0-15 points): Appropriate for platform?
+- Emotional resonance (0-15 points): Does it connect emotionally?
+- Call to action (0-10 points): Does it invite engagement?
+- Hashtags (0-10 points): Appropriate number and relevance?
+
+Suggestions should be actionable and specific, like:
+- "Add a specific number or statistic to make the hook more compelling"
+- "Include more personal details to build connection"
+- "Shorten the post - it's too long for ${platform}"
+- "Add a question at the end to encourage comments"
+- "Replace generic hashtags with more specific ones"
+
+Keep suggestions to 2-4 most important ones.
+    `.trim();
+  }
+
   return basePrompt;
 };
 
@@ -179,7 +211,8 @@ export async function POST(req: Request) {
       action === "shorter" ||
       action === "emotional" ||
       action === "regenerate" ||
-      action === "hooks"
+      action === "hooks" ||
+      action === "analyze"
         ? action
         : "generate";
 
@@ -209,6 +242,22 @@ export async function POST(req: Request) {
         .slice(0, 3);
 
       return NextResponse.json({ hooks, output: generatedText });
+    }
+
+    if (safeAction === "analyze") {
+      try {
+        const analysis = JSON.parse(generatedText);
+        return NextResponse.json({
+          score: Math.max(0, Math.min(100, analysis.score || 0)),
+          suggestions: Array.isArray(analysis.suggestions) ? analysis.suggestions.slice(0, 4) : []
+        });
+      } catch (parseError) {
+        // Fallback if JSON parsing fails
+        return NextResponse.json({
+          score: 75,
+          suggestions: ["Consider adding more specific details", "Try including a question to encourage engagement"]
+        });
+      }
     }
 
     return NextResponse.json({ output: generatedText, action: safeAction });
