@@ -7,12 +7,16 @@ interface OutputPreviewProps {
   content: string;
   platform: "LinkedIn" | "Twitter/X" | "Instagram";
   isGenerating: boolean;
+  engagementScore?: number | null;
+  engagementSuggestions?: string[];
 }
 
 export const OutputPreview: React.FC<OutputPreviewProps> = ({
   content,
   platform,
   isGenerating,
+  engagementScore,
+  engagementSuggestions = []
 }) => {
   const [copied, setCopied] = useState(false);
   const formattedDate = new Intl.DateTimeFormat("en-US", {
@@ -111,6 +115,41 @@ export const OutputPreview: React.FC<OutputPreviewProps> = ({
                 </div>
               )}
             </div>
+
+            {/* Engagement Analysis */}
+            {engagementScore !== null && engagementScore !== undefined && (
+              <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-900">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
+                      engagementScore >= 80 ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400' :
+                      engagementScore >= 60 ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-400' :
+                      'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400'
+                    }`}>
+                      {engagementScore}
+                    </div>
+                    <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                      Engagement Score
+                    </span>
+                  </div>
+                  <span className="text-xs text-slate-500 dark:text-slate-400">
+                    {engagementScore >= 80 ? 'Excellent' : engagementScore >= 60 ? 'Good' : 'Needs work'}
+                  </span>
+                </div>
+                
+                {engagementSuggestions.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-xs font-medium text-slate-600 dark:text-slate-400">Suggestions:</p>
+                    {engagementSuggestions.map((suggestion, index) => (
+                      <div key={index} className="flex items-start gap-2 text-xs text-slate-600 dark:text-slate-400">
+                        <span className="text-blue-500 mt-0.5">•</span>
+                        <span>{suggestion}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
 
             <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-900 text-xs text-slate-500 dark:text-slate-400">
               <div className="flex items-center justify-between">
