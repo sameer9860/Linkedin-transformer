@@ -6,7 +6,8 @@ import { ToneSelector, Tone } from "./ToneSelector";
 import { PlatformSelector, Platform } from "./PlatformSelector";
 import { CringeSlider } from "./CringeSlider";
 import { OutputPreview } from "./OutputPreview";
-import { Sparkles, ArrowRight, Wand2, RefreshCw, Heart, Scissors } from "lucide-react";
+import { Sparkles, ArrowRight, Wand2, RefreshCw, Heart, Scissors, Check, Info } from "lucide-react";
+import { toast } from "sonner";
 
 export const LinkedInTransformer: React.FC = () => {
   const [platform, setPlatform] = useState<Platform>("LinkedIn");
@@ -54,10 +55,16 @@ export const LinkedInTransformer: React.FC = () => {
       const data = await callGenerateApi("generate");
       setOutput(data.output);
       setHooks([]);
+      toast.success("Post generated successfully!", {
+        description: `Your ${platform} post is ready.`,
+      });
       // Analyze engagement after generation
       await analyzeEngagement(data.output);
     } catch (error: any) {
       console.error("Generation error:", error);
+      toast.error("Generation failed", {
+        description: error.message,
+      });
       setOutput(`Error: ${error.message}. Make sure you have a GEMINI_API_KEY in your .env`);
       setEngagementScore(null);
       setEngagementSuggestions([]);
@@ -92,10 +99,14 @@ export const LinkedInTransformer: React.FC = () => {
     try {
       const data = await callGenerateApi(action);
       setOutput(data.output);
+      toast.success(`Post ${action === 'shorter' ? 'shortened' : action === 'emotional' ? 'emotionally enhanced' : 'regenerated'}!`);
       // Re-analyze engagement after adjustment
       await analyzeEngagement(data.output);
     } catch (error: any) {
       console.error("Adjustment error:", error);
+      toast.error("Adjustment failed", {
+        description: error.message,
+      });
       setOutput(`Error: ${error.message}. Make sure you have a GEMINI_API_KEY in your .env`);
     } finally {
       setIsTweaking(false);
@@ -109,8 +120,13 @@ export const LinkedInTransformer: React.FC = () => {
     try {
       const data = await callGenerateApi("hooks");
       setHooks(Array.isArray(data.hooks) ? data.hooks : []);
+      toast.info("Hook options generated", {
+        description: "Choose one to replace your current hook.",
+        icon: <Wand2 size={16} className="text-blue-500" />
+      });
     } catch (error: any) {
       console.error("Hook generation error:", error);
+      toast.error("Failed to generate hooks");
       setOutput(`Error: ${error.message}. Make sure you have a GEMINI_API_KEY in your .env`);
     } finally {
       setIsGeneratingHooks(false);
@@ -129,19 +145,20 @@ export const LinkedInTransformer: React.FC = () => {
 
     lines[firstMeaningfulLineIndex] = selectedHook;
     setOutput(lines.join("\n"));
+    toast.success("Hook applied!");
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto px-4 py-12">
+    <div className="w-full max-w-4xl mx-auto px-4 py-12 animate-in fade-in duration-1000 slide-in-from-bottom-8">
       <div className="flex flex-col gap-8">
         <div className="text-center space-y-3 mb-4">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 text-xs font-bold tracking-wide uppercase border border-blue-100 dark:border-blue-800">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 text-xs font-bold tracking-wide uppercase border border-blue-100 dark:border-blue-800 animate-in zoom-in duration-700 delay-300 fill-mode-both">
             <Sparkles size={14} /> AI-Powered Content Transformation
           </div>
-          <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-            LinkedIn <span className="text-blue-600">Transformer</span>
+          <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight animate-in slide-in-from-top-4 duration-700 delay-100 fill-mode-both">
+            LinkedIn <span className="text-blue-600 text-gradient">Transformer</span>
           </h1>
-          <p className="text-slate-500 dark:text-slate-400 text-lg max-w-2xl mx-auto leading-relaxed">
+          <p className="text-slate-500 dark:text-slate-400 text-lg max-w-2xl mx-auto leading-relaxed animate-in fade-in duration-1000 delay-500 fill-mode-both">
             Turn your rough thoughts into posts for LinkedIn, Twitter/X, or Instagram in seconds.
             Stop staring at a blank screen.
           </p>
